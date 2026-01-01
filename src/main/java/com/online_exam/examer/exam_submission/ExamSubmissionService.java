@@ -88,8 +88,8 @@ public class ExamSubmissionService implements IExamSubmissionService {
 
 
         final String examLink = environment.getProperty("public.url")+"exam/takeExam?id="+encryptedId;
-        //emailService.sendExamLinkToUser(user.getEmail(),examLink,exam.getExamTitle(),exam.getExamDuration());
-        System.out.println("Exam Link (Local Testing): " + examLink);
+        emailService.sendExamLinkToUser(user.getEmail(),examLink,exam.getExamTitle(),exam.getExamDuration());
+        //System.out.println("Exam Link (Local Testing): " + examLink);
 
 
         // Fetch the all users with pagination
