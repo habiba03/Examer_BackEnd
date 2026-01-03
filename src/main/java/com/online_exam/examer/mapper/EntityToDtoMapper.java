@@ -318,6 +318,8 @@ public class EntityToDtoMapper {
         // Basic question info
         dto.setQuestionId(entity.getQuestion().getQuestionId());
 
+        dto.setQuestionText(entity.getQuestion().getQuestionContent());
+
         // Written answer (for WRITTEN questions)
         dto.setWrittenAnswer(entity.getWrittenAnswer());
 
