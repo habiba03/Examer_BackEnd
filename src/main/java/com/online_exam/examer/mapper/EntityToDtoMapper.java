@@ -320,6 +320,8 @@ public class EntityToDtoMapper {
 
         dto.setQuestionText(entity.getQuestion().getQuestionContent());
 
+        dto.setQuestionType(entity.getQuestion().getQuestionType());
+
         // Written answer (for WRITTEN questions)
         dto.setWrittenAnswer(entity.getWrittenAnswer());
 
@@ -336,6 +338,7 @@ public class EntityToDtoMapper {
                 OptionDto optionDto = new OptionDto();
                 optionDto.setOptionId(uao.getOption().getOptionId());
                 optionDto.setOptionText(uao.getOption().getOptionText());
+                optionDto.setIsCorrect(uao.getOption().getIsCorrect());
                 selectedOptions.add(optionDto);
             }
         }

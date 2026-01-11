@@ -11,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
+
 
 import java.util.List;
 
@@ -29,6 +32,15 @@ public class QuestionController {
                 body(new ApiResponse("Question added successfully", questionService.addQuestion(addQuestionRequest, difficulty ,pageable)));
 
     }
+
+    @PostMapping(path= "/uploadQuestionsExcel")
+    public ResponseEntity<GeneralResponse> uploadQuestionsExcel(@RequestParam("file") MultipartFile file, Pageable pageable) {
+        // difficulty is read from each Excel row, ignore path variable
+        questionService.uploadQuestionsFromExcel(file, null, pageable);
+        return ResponseEntity.ok(new GeneralResponse("Questions uploaded successfully"));
+    }
+
+
 
     @GetMapping(path = "getQuestionById/{questionid}")
     public ResponseEntity<ApiResponse> getQuestionById(@PathVariable Long questionid) {

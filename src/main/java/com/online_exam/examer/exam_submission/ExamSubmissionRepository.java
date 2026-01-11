@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 public interface ExamSubmissionRepository extends JpaRepository<ExamSubmissionEntity,Long> {
 
 
-    @Query("SELECT new com.online_exam.examer.exam_submission.dto.UserExamDetailsDto(u.userId,u.userName, e.examTitle, es.score) " +
+    @Query("SELECT new com.online_exam.examer.exam_submission.dto.UserExamDetailsDto(es.examSubmissionId,u.userId,u.userName, e.examTitle, es.score) " +
             "FROM ExamSubmissionEntity es " +
             "JOIN es.user u " +
             "JOIN es.exam e " +

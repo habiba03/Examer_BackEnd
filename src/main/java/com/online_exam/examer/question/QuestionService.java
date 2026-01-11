@@ -14,6 +14,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.web.multipart.MultipartFile;
+
 
 import java.util.*;
 
@@ -90,6 +94,88 @@ public class QuestionService implements IQuestionService {
 
         // Wrap the Page<QuestionDto> into PageDto<QuestionDto> to return only necessary data
         return new PageDto<>(questionsPageDto);
+    }
+
+
+
+    // ========================== EXCEL UPLOAD METHOD ==========================
+    @Transactional
+    public void uploadQuestionsFromExcel(MultipartFile file, String difficulty, Pageable pageable) {
+
+        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
+
+            Sheet sheet = workbook.getSheetAt(0);
+            DataFormatter formatter = new DataFormatter();
+
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) { // skip header
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+
+                try {
+                    AddQuestionRequest request = new AddQuestionRequest();
+
+                    // ===== Basic fields =====
+                    request.setQuestionContent(
+                            formatter.formatCellValue(row.getCell(0)).trim()
+                    );
+
+                    request.setDifficulty(
+                            formatter.formatCellValue(row.getCell(1)).trim()
+                    );
+
+                    request.setCategory(
+                            formatter.formatCellValue(row.getCell(2)).trim()
+                    );
+
+                    // ===== Question Type (SAFE ENUM) =====
+                    String typeValue = formatter
+                            .formatCellValue(row.getCell(3))
+                            .trim()
+                            .toUpperCase();
+
+                    QuestionType questionType = QuestionType.valueOf(typeValue);
+                    request.setQuestionType(questionType);
+
+                    // ===== WRITTEN =====
+                    if (questionType == QuestionType.WRITTEN) {
+                        request.setOptions(Collections.emptyList());
+                        request.setCorrectOptionIndexes(Collections.emptyList());
+                    }
+                    else {
+                        // ===== OPTIONS (ONE CELL ; separated) =====
+                        String optionsCell = formatter.formatCellValue(row.getCell(4));
+                        List<String> options = Arrays.stream(optionsCell.split(";"))
+                                .map(String::trim)
+                                .filter(opt -> !opt.isEmpty())
+                                .toList();
+
+                        request.setOptions(options);
+
+                        // ===== CORRECT INDEXES (comma separated) =====
+                        String correctIndexesCell = formatter.formatCellValue(row.getCell(5));
+                        List<Integer> correctIndexes = Arrays.stream(correctIndexesCell.split(","))
+                                .map(String::trim)
+                                .map(Integer::parseInt)
+                                .toList();
+
+                        request.setCorrectOptionIndexes(correctIndexes);
+                    }
+
+                    // ===== Use EXISTING addQuestion logic =====
+                    // difficulty = null → Excel row difficulty is used
+                    addQuestion(request, null, pageable);
+
+                } catch (Exception rowException) {
+                    // Skip invalid rows but continue processing
+                    System.err.println(
+                            "Skipping row " + i + " due to error: " + rowException.getMessage()
+                    );
+                }
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to upload questions from Excel", e);
+        }
     }
 
 

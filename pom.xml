@@ -137,6 +137,14 @@
 			<version>1.16.0</version> <!-- Use the latest version -->
 		</dependency>
 
+		<!-- Excel -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>5.2.5</version>
+		</dependency>
+
+
 
 	</dependencies>
 

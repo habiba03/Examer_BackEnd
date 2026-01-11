@@ -10,6 +10,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserExamDetailsDto implements Serializable {
+    private Long examSubmissionId;
     private Long userId;
     private String userName;
     private String examName;

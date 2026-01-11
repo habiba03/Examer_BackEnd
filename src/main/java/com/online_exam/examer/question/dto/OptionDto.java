@@ -8,4 +8,5 @@ import lombok.*;
 public class OptionDto {
     private Long optionId;
     private String optionText;
+    private Boolean isCorrect;
 }
