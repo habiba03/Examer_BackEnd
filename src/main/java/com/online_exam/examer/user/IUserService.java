@@ -6,12 +6,14 @@ import com.online_exam.examer.user.request.RecoverUserRequest;
 import com.online_exam.examer.user.request.SoftDeleteRequest;
 import com.online_exam.examer.user.request.UpdateUserRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 public interface IUserService {
 
     void addUser(AddUserRequest addUserRequest);
+    void addUsersFromExcel (MultipartFile file, Long adminId);
     PageDto<UserDto> softDeleteUser(SoftDeleteRequest softDeleteRequest, Pageable pageable);
     PageDto<UserDto> updateUser(Long userId, UpdateUserRequest updateUserRequest, Pageable pageable);
     UserDto getUserById(Long UserId);

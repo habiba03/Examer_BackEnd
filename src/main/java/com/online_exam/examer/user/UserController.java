@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,6 +26,19 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(new GeneralResponse("User Successfully Added"));
 
     }
+
+    @PostMapping("uploadUsersExcel")
+    public ResponseEntity<GeneralResponse> uploadUsersExcel(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("adminId") Long adminId) {
+
+        userService.addUsersFromExcel(file, adminId);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(new GeneralResponse("Users Successfully Added"));
+    }
+
+
+
     @PutMapping("deleteUser")
     public ResponseEntity<ApiResponse> softDeleteUser(@RequestBody SoftDeleteRequest softDeleteRequest, @PageableDefault(size = 5) Pageable pageable) {
         return ResponseEntity.status(HttpStatus.OK).

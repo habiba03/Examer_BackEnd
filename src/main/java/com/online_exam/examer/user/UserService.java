@@ -11,12 +11,18 @@ import com.online_exam.examer.user.request.RecoverUserRequest;
 import com.online_exam.examer.user.request.SoftDeleteRequest;
 import com.online_exam.examer.user.request.UpdateUserRequest;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -74,6 +80,46 @@ public class UserService implements IUserService {
         // Save To Database
         userRepository.save(newUser);
     }
+
+    @Transactional
+    @Override
+    public void addUsersFromExcel(MultipartFile file, Long adminId) {
+
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("Excel file is empty");
+        }
+
+        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
+
+            Sheet sheet = workbook.getSheetAt(0);
+            DataFormatter formatter = new DataFormatter();
+
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) { // skip header
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+
+                String userName = formatter.formatCellValue(row.getCell(0));
+                String email    = formatter.formatCellValue(row.getCell(1));
+                String phone    = formatter.formatCellValue(row.getCell(2));
+
+                // Skip empty rows
+                if (userName.isBlank() && email.isBlank()) continue;
+
+                AddUserRequest request = new AddUserRequest();
+                request.setUserName(userName);
+                request.setEmail(email);
+                request.setPhone(phone);
+                request.setAdminId(adminId);
+
+                // 🔥 REUSE EXISTING LOGIC
+                addUser(request);
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to upload users from Excel", e);
+        }
+    }
+
 
 
     @Transactional

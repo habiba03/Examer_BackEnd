@@ -6,11 +6,13 @@ import com.online_exam.examer.question.dto.QuestionDto;
 import com.online_exam.examer.question.request.AddQuestionRequest;
 import com.online_exam.examer.question.request.UpdateQuestionRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 public interface IQuestionService {
     PageDto<QuestionDto> addQuestion(AddQuestionRequest question, String difficulty , Pageable pageable);
+    void uploadQuestionsFromExcel(MultipartFile file, String difficulty, Pageable pageable);
     PageDto<QuestionDto>deleteQuestionById(Long QuestionId,  String difficulty  ,Pageable pageable);
     PageDto<QuestionDto> updateQuestionBYId(Long questionId, UpdateQuestionRequest updateQuestionRequest, String difficulty , Pageable pageable);
     QuestionDto getQuestionById(Long QuestionId);
