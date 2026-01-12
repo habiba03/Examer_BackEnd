@@ -45,6 +45,10 @@ public class UserAnswerEntity {
     @Column(name = "written_answer", columnDefinition = "TEXT")
     private String writtenAnswer;
 
+    @Column(name = "written_score", nullable = false)
+    private Integer writtenScore = 0; // 0 = not graded yet, 1–5 by admin
+
+
     @CreationTimestamp
     @Column(name = "created_date")
     private LocalDateTime createdDate;

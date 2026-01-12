@@ -6,6 +6,7 @@ import com.online_exam.examer.exam_submission.request.AssignExamToUserUpdateRequ
 import com.online_exam.examer.exam_submission.request.ResetExamToUserRequest;
 import com.online_exam.examer.response.ApiResponse;
 import com.online_exam.examer.response.GeneralResponse;
+import com.online_exam.examer.user_answers.request.RateWrittenExamRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -64,4 +65,16 @@ public class ExamSubmissionController {
 
 
     }
+
+
+    @PutMapping("rateWrittenExam/{submissionId}")
+    public ResponseEntity<GeneralResponse> rateWrittenExam(
+            @PathVariable Long submissionId,
+            @RequestBody RateWrittenExamRequest request) {
+
+        examSubmissionService.rateWrittenExam(submissionId, request);
+        return ResponseEntity.status(HttpStatus.OK).body(new GeneralResponse("Written exam graded successfully"));
+        //return ResponseEntity.ok(new ApiResponse("Written exam graded successfully"));
+    }
+
 }

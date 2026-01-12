@@ -19,6 +19,10 @@ import com.online_exam.examer.user.UserDto;
 import com.online_exam.examer.user.UserEntity;
 import com.online_exam.examer.user.UserRepository;
 
+import com.online_exam.examer.user_answers.UserAnswerEntity;
+import com.online_exam.examer.user_answers.UserAnswerRepository;
+import com.online_exam.examer.user_answers.request.RateWrittenExamRequest;
+import com.online_exam.examer.user_answers.request.WrittenAnswerRateRequest;
 import com.online_exam.examer.util.EncryptionUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.env.Environment;
@@ -45,6 +49,7 @@ public class ExamSubmissionService implements IExamSubmissionService {
     private final EmailService emailService;
     private final EncryptionUtil encryptionUtil;
     private final Environment environment;
+    private final UserAnswerRepository userAnswerRepository;
 
 
     @Transactional
@@ -191,6 +196,90 @@ public class ExamSubmissionService implements IExamSubmissionService {
 
         return loadExamDto;
     }
+
+
+//    @Override
+//    public void rateWrittenExam(Long submissionId, RateWrittenExamRequest request) {
+//
+//        // Fetch the submission directly by numeric ID
+//        ExamSubmissionEntity submission = examSubmissionRepository
+//                .findById(submissionId)
+//                .orElseThrow(() -> new ResourceNotFoundException("Submission not found"));
+//
+//        int writtenTotal = 0;
+//
+//        for (WrittenAnswerRateRequest r : request.getRates()) {
+//
+//            // Validate the rating
+//            if (r.getRate() < 1 || r.getRate() > 5) {
+//                throw new IllegalArgumentException("Rate must be between 1 and 5");
+//            }
+//
+//            // Fetch the user answer
+//            UserAnswerEntity answer = userAnswerRepository
+//                    .findById(r.getUserAnswerId())
+//                    .orElseThrow(() -> new ResourceNotFoundException("Answer not found"));
+//
+//            // Update the written score
+//            answer.setWrittenScore(r.getRate());
+//            writtenTotal += r.getRate();
+//
+//            // Save the updated answer
+//            userAnswerRepository.save(answer);
+//        }
+//
+//        // Update the total score and mark submission as finalized
+//        submission.setScore(submission.getScore() + writtenTotal);
+//        submission.setStatus(true);
+//
+//        examSubmissionRepository.save(submission);
+//    }
+
+
+    public void rateWrittenExam(Long submissionId, RateWrittenExamRequest request) {
+
+        ExamSubmissionEntity submission = examSubmissionRepository
+                .findById(submissionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Submission not found"));
+
+        // Remove old written scores from submission.score
+        List<UserAnswerEntity> writtenAnswers = userAnswerRepository.findByExamSubmission_ExamSubmissionId(submissionId)
+                .stream()
+                .filter(ans -> ans.getWrittenAnswer() != null && !ans.getWrittenAnswer().isEmpty())
+                .toList();
+
+        int oldWrittenTotal = writtenAnswers.stream()
+                .mapToInt(UserAnswerEntity::getWrittenScore)
+                .sum();
+
+        // Reset the old written scores
+        submission.setScore(submission.getScore() - oldWrittenTotal);
+
+        int newWrittenTotal = 0;
+
+        for (WrittenAnswerRateRequest r : request.getRates()) {
+
+            if (r.getRate() < 1 || r.getRate() > 5) {
+                throw new IllegalArgumentException("Rate must be between 1 and 5");
+            }
+
+            UserAnswerEntity answer = userAnswerRepository
+                    .findById(r.getUserAnswerId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Answer not found"));
+
+            answer.setWrittenScore(r.getRate());
+            newWrittenTotal += r.getRate();
+
+            userAnswerRepository.save(answer);
+        }
+
+        submission.setScore(submission.getScore() + newWrittenTotal);
+        submission.setStatus(true); // finalized
+
+        examSubmissionRepository.save(submission);
+    }
+
+
 
 
 

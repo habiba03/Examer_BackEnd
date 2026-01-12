@@ -316,6 +316,7 @@ public class EntityToDtoMapper {
         UserAnswerViewDto dto = new UserAnswerViewDto();
 
         // Basic question info
+        dto.setUserAnswerId(entity.getUserAnswerId());
         dto.setQuestionId(entity.getQuestion().getQuestionId());
 
         dto.setQuestionText(entity.getQuestion().getQuestionContent());
@@ -324,6 +325,8 @@ public class EntityToDtoMapper {
 
         // Written answer (for WRITTEN questions)
         dto.setWrittenAnswer(entity.getWrittenAnswer());
+
+        dto.setWrittenScore(entity.getWrittenScore());
 
         // If question type is WRITTEN → no selected options
         if (entity.getQuestion().getQuestionType() == QuestionType.WRITTEN) {

@@ -10,11 +10,13 @@ import java.util.List;
 @Setter
 public class UserAnswerViewDto {
 
+    private Long userAnswerId;
     private Long questionId;
     private String questionText;
     private QuestionType questionType;
 
     private String writtenAnswer;
+    private Integer writtenScore;
 
     private List<OptionDto> selectedOptions;
 }

@@ -81,6 +81,7 @@ public class SecurityConfiguration {
                         "logoutAdmin",
                         "addSuperAdmin",
                         "assignupdate",
+                        "rateWrittenExam",
                         "/user-answers")
                 .permitAll()
                 .anyRequest().authenticated());

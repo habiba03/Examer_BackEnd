@@ -7,6 +7,7 @@ import com.online_exam.examer.exam_submission.request.AssignExamToUserUpdateRequ
 import com.online_exam.examer.exam_submission.request.ResetExamToUserRequest;
 import com.online_exam.examer.mapper.PageDto;
 import com.online_exam.examer.user.UserDto;
+import com.online_exam.examer.user_answers.request.RateWrittenExamRequest;
 import org.springframework.data.domain.Pageable;
 
 public interface IExamSubmissionService {
@@ -20,5 +21,7 @@ public interface IExamSubmissionService {
     PageDto<UserExamDetailsDto> getUsersForExamAndAdmin(Long examId, Long adminId, Pageable pageable);
 
     LoadExamDto getExamQuestionsByExamSubmissionId(String encryptedExamSubmissionId);
+
+    public void rateWrittenExam(Long submissionId, RateWrittenExamRequest request);
 
 }
