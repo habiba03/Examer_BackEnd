@@ -7,6 +7,7 @@ import com.online_exam.examer.mapper.EntityToDtoMapper;
 import com.online_exam.examer.mapper.PageDto;
 import com.online_exam.examer.question.QuestionEntity;
 import com.online_exam.examer.question.QuestionRepository;
+import com.online_exam.examer.question.enums.QuestionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -87,6 +88,7 @@ public class ExamService implements IExamService {
         // Convert the Page<ExamEntity> to Page<ExamDto>
         Page<ExamDto> examsPageDto = entityToDtoMapper.examsPageToDtoPage(remainingExamsPage);
 
+
         // Wrap the Page<ExamDto> into PageDto<ExamDto> to return only necessary data
         return new PageDto<>(examsPageDto);
     }
@@ -98,7 +100,12 @@ public class ExamService implements IExamService {
         Page<ExamEntity> examEntitiesPage =examRepository.findAllByAdmin_AdminId(adminId,pageable);
         // Use the mapper to convert Page<ExamEntity> to Page<ExamDto>
 
-        Page<ExamDto> examsPage = entityToDtoMapper.examsPageToDtoPage(examEntitiesPage);
+
+        Page<ExamDto> examsPage = examEntitiesPage.map(exam -> {
+            ExamDto dto = entityToDtoMapper.examToDto(exam);
+            dto.setTotalScore(calculateTotalMark(exam.getExamId())); // ✅ set here
+            return dto;
+        });
 
         //map AdminDto to Page Dto to avoid serialization and return only data we need
         return new PageDto<>(examsPage);
@@ -168,6 +175,25 @@ public class ExamService implements IExamService {
         }
         Collections.shuffle(finalList);
         return finalList;
+    }
+
+    @Override
+    public int calculateTotalMark(Long examId) {
+
+        List<QuestionEntity> questions =
+                questionRepositary.findQuestionsByExamId(examId);
+
+        int total = 0;
+
+        for (QuestionEntity q : questions) {
+            if (q.getQuestionType() == QuestionType.WRITTEN) {
+                total += 5;
+            } else {
+                total += 1;
+            }
+        }
+
+        return total;
     }
 
 

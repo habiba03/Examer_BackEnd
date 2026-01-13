@@ -15,6 +15,7 @@ public class ExamDto implements Serializable {
     private String examTitle;
     private String examDescription;
     private int examDuration;
+    private int totalScore;
     private int easy;
     private int medium;
     private int hard;

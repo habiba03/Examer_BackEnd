@@ -3,6 +3,7 @@ package com.online_exam.examer.exam_submission;
 import com.online_exam.examer.authentication.EmailService;
 import com.online_exam.examer.exam.ExamEntity;
 import com.online_exam.examer.exam.ExamRepository;
+import com.online_exam.examer.exam.ExamService;
 import com.online_exam.examer.exam_submission.dto.ExamQuestionsDto;
 import com.online_exam.examer.exam_submission.dto.LoadExamDto;
 import com.online_exam.examer.exam_submission.dto.UserExamDetailsDto;
@@ -51,6 +52,7 @@ public class ExamSubmissionService implements IExamSubmissionService {
     private final EncryptionUtil encryptionUtil;
     private final Environment environment;
     private final UserAnswerRepository userAnswerRepository;
+    private final ExamService examService;
 
 
     @Transactional
@@ -179,7 +181,7 @@ public class ExamSubmissionService implements IExamSubmissionService {
                         )
                 );
 
-        int totalMark = calculateTotalMark(examId);
+        int totalMark = examService.calculateTotalMark(examId);
 
         Page<UserExamDetailsDto> dtoPage = submissions.map(sub -> {
             UserExamDetailsDto dto = new UserExamDetailsDto();
@@ -198,23 +200,7 @@ public class ExamSubmissionService implements IExamSubmissionService {
         return new PageDto<>(dtoPage);
     }
 
-    public int calculateTotalMark(Long examId) {
 
-        List<QuestionEntity> questions =
-                questionRepositary.findQuestionsByExamId(examId);
-
-        int total = 0;
-
-        for (QuestionEntity q : questions) {
-            if (q.getQuestionType() == QuestionType.WRITTEN) {
-                total += 5;
-            } else {
-                total += 1;
-            }
-        }
-
-        return total;
-    }
 
 
     @Transactional(readOnly = true)

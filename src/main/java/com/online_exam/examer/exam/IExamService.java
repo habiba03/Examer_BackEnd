@@ -12,6 +12,7 @@ public interface IExamService {
 
    PageDto<ExamDto> getAllExamsByAdminId(Long adminId, Pageable pageable);
    List<ExamDropListDto> getAllExamsTitle(Long adminId);
+    int calculateTotalMark(Long examId);
 
     /****************** Not Used ******************/
 
