@@ -14,5 +14,22 @@ public class UserExamDetailsDto implements Serializable {
     private Long userId;
     private String userName;
     private String examName;
+    private int totalMark;
     private int score;
+
+    // ✅ constructor used by JPQL
+    public UserExamDetailsDto(
+            Long examSubmissionId,
+            Long userId,
+            String userName,
+            String examName,
+            int score
+    ) {
+        this.examSubmissionId = examSubmissionId;
+        this.userId = userId;
+        this.userName = userName;
+        this.examName = examName;
+        this.score = score;
+    }
+
 }

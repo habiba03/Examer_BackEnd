@@ -213,22 +213,45 @@ public class UserService implements IUserService {
         return new PageDto<>(usersPageDto);
     }
 
-    @Transactional
+    //@Transactional
 //    @Caching(evict = {
 //
 //
 //            @CacheEvict(value = "getUsersForExamAndAdmin", allEntries = true)
 //    })
+//    @Override
+//    public PageDto<UserDto> hardDeleteByUserId(Long UserId, Pageable pageable) {
+//        UserEntity userEntity = userRepository.findById(UserId).get();
+//        AdminEntity adminEntity = userEntity.getAdmin();
+//        Long adminId = adminEntity.getAdminId();
+//        userRepository.delete(userEntity);
+//        Page<UserEntity>deletedUsers = userRepository.findByAdminAdminIdAndIsDeletedTrue(adminId,pageable);
+//        Page<UserDto> usersPageDto = entityToDtoMapper.usersPageToDtoPage(deletedUsers);
+//        return new PageDto<>(usersPageDto);
+//    }
+
     @Override
-    public PageDto<UserDto> hardDeleteByUserId(Long UserId, Pageable pageable) {
-        UserEntity userEntity = userRepository.findById(UserId).get();
+    @Transactional
+    public PageDto<UserDto> hardDeleteByUserId(Long userId, Pageable pageable) {
+
+        // Fetch the user
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        // Delete user (will cascade to ExamSubmissions → UserAnswers)
+        userRepository.delete(userEntity);
+
+        // Return deleted users for UI (optional)
         AdminEntity adminEntity = userEntity.getAdmin();
         Long adminId = adminEntity.getAdminId();
-        userRepository.delete(userEntity);
-        Page<UserEntity>deletedUsers = userRepository.findByAdminAdminIdAndIsDeletedTrue(adminId,pageable);
+
+        Page<UserEntity> deletedUsers = userRepository.findByAdminAdminIdAndIsDeletedTrue(adminId, pageable);
         Page<UserDto> usersPageDto = entityToDtoMapper.usersPageToDtoPage(deletedUsers);
         return new PageDto<>(usersPageDto);
     }
+
+
+
     @Transactional
 //    @Caching(evict = {
 //

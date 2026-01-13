@@ -15,6 +15,7 @@ import com.online_exam.examer.mapper.EntityToDtoMapper;
 import com.online_exam.examer.mapper.PageDto;
 import com.online_exam.examer.question.QuestionEntity;
 import com.online_exam.examer.question.QuestionRepository;
+import com.online_exam.examer.question.enums.QuestionType;
 import com.online_exam.examer.user.UserDto;
 import com.online_exam.examer.user.UserEntity;
 import com.online_exam.examer.user.UserRepository;
@@ -151,15 +152,70 @@ public class ExamSubmissionService implements IExamSubmissionService {
     }
 
 
-    @Transactional(readOnly = true)
-//   @Cacheable(value = "getUsersForExamAndAdmin", key = "#examId + '-' + #adminId + '-' + #pageable.pageNumber + '-' + #pageable.pageSize")
+//    @Transactional(readOnly = true)
+////   @Cacheable(value = "getUsersForExamAndAdmin", key = "#examId + '-' + #adminId + '-' + #pageable.pageNumber + '-' + #pageable.pageSize")
+//    @Override
+//    public PageDto<UserExamDetailsDto> getUsersForExamAndAdmin(Long examId, Long adminId, Pageable pageable) {
+//
+//        Page<UserExamDetailsDto> userExamDetails = examSubmissionRepository.findUserExamDetailsByExamAndAdmin(examId, adminId, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("user.userName").ascending()));
+//
+//        return new PageDto<>(userExamDetails);
+//    }
+
+
     @Override
-    public PageDto<UserExamDetailsDto> getUsersForExamAndAdmin(Long examId, Long adminId, Pageable pageable) {
+    @Transactional(readOnly = true)
+    public PageDto<UserExamDetailsDto> getUsersForExamAndAdmin(
+            Long examId, Long adminId, Pageable pageable) {
 
-        Page<UserExamDetailsDto> userExamDetails = examSubmissionRepository.findUserExamDetailsByExamAndAdmin(examId, adminId, PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by("user.userName").ascending()));
+        Page<UserExamDetailsDto> submissions =
+                examSubmissionRepository.findUserExamDetailsByExamAndAdmin(
+                        examId,
+                        adminId,
+                        PageRequest.of(
+                                pageable.getPageNumber(),
+                                pageable.getPageSize(),
+                                Sort.by("user.userName").ascending()
+                        )
+                );
 
-        return new PageDto<>(userExamDetails);
+        int totalMark = calculateTotalMark(examId);
+
+        Page<UserExamDetailsDto> dtoPage = submissions.map(sub -> {
+            UserExamDetailsDto dto = new UserExamDetailsDto();
+
+            dto.setExamSubmissionId(sub.getExamSubmissionId());
+            dto.setUserId(sub.getUserId());
+            dto.setUserName(sub.getUserName());
+            dto.setExamName(sub.getExamName());
+            dto.setScore(sub.getScore());
+            dto.setTotalMark(totalMark);
+
+
+            return dto;
+        });
+
+        return new PageDto<>(dtoPage);
     }
+
+    public int calculateTotalMark(Long examId) {
+
+        List<QuestionEntity> questions =
+                questionRepositary.findQuestionsByExamId(examId);
+
+        int total = 0;
+
+        for (QuestionEntity q : questions) {
+            if (q.getQuestionType() == QuestionType.WRITTEN) {
+                total += 5;
+            } else {
+                total += 1;
+            }
+        }
+
+        return total;
+    }
+
 
     @Transactional(readOnly = true)
     @Override

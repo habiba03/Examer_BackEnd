@@ -2,6 +2,7 @@ package com.online_exam.examer.exam_submission;
 
 import com.online_exam.examer.exam.ExamEntity;
 import com.online_exam.examer.user.UserEntity;
+import com.online_exam.examer.user_answers.UserAnswerEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -13,6 +14,8 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Setter
@@ -50,5 +53,9 @@ public class ExamSubmissionEntity {
 
    // @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted=false ;
+
+    @OneToMany(mappedBy = "examSubmission", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserAnswerEntity> userAnswers = new ArrayList<>();
+
 
 }
