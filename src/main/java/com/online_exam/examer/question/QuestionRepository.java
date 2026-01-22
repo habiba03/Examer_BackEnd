@@ -72,6 +72,15 @@ CategoryDto findCategoryDetailsByCategoryAndNotDeleted(@Param("category") String
 
     Page<QuestionEntity> findByCategoryAndIsDeletedFalse(@Param("category") String category, Pageable pageable);
 
+    @Query("""
+    SELECT COUNT(e) > 0
+    FROM ExamEntity e
+    JOIN e.assignedQuestions q
+    WHERE q.questionId = :questionId
+""")
+    boolean isQuestionUsedInAnyExam(@Param("questionId") Long questionId);
+
+
     /****************** Not Used ******************/
 
     //Page<QuestionEntity> findAllByIsDeletedFalse(Pageable pageable);

@@ -33,13 +33,74 @@ public class UserAnswerService implements IUserAnswerService {
 
     @Override
     @Transactional
+//    public void submitAnswer(UserAnswerSubmitRequest request) {
+//
+//        // 1️⃣ Fetch the exam submission
+//        ExamSubmissionEntity submission = examSubmissionRepository.findById(encryptionUtil.decryptId(request.getExamSubmissionId()))
+//                .orElseThrow(() -> new ResourceNotFoundException("Exam submission not found"));
+//
+//        // 2️⃣ Loop through all question answers and save
+//        for (UserAnswerSubmitRequest.QuestionAnswer qa : request.getAnswers()) {
+//
+//            QuestionEntity question = questionRepository.findById(qa.getQuestionId())
+//                    .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
+//
+//            UserAnswerEntity answer = new UserAnswerEntity();
+//            answer.setExamSubmission(submission);
+//            answer.setQuestion(question);
+//            answer.setWrittenAnswer(qa.getWrittenAnswer());
+//            answer.setCreatedDate(LocalDateTime.now());
+//            userAnswerRepository.save(answer);
+//
+//            // Save selected MCQ options USING INDEXES
+//            List<Integer> selectedIndexes = qa.getSelectedOptionIndexes();
+//
+//            if (selectedIndexes != null && !selectedIndexes.isEmpty()) {
+//
+//                List<QuestionOptionEntity> questionOptions = question.getOptions();
+//                List<UserAnswerOptionEntity> userAnswerOptions = new ArrayList<>();
+//
+//                for (Integer index : selectedIndexes) {
+//
+//                    // 🛡 Safety check
+//                    if (index < 0 || index >= questionOptions.size()) {
+//                        throw new ResourceNotFoundException("Invalid option index: " + index);
+//                    }
+//
+//                    QuestionOptionEntity option = questionOptions.get(index);
+//
+//                    UserAnswerOptionEntity uao = new UserAnswerOptionEntity();
+//                    uao.setUserAnswer(answer);
+//                    uao.setOption(option);
+//
+//                    // ✅ IMPORTANT: keep relationship in memory (fixes score issue)
+//                    answer.getSelectedOptions().add(uao);
+//
+//                    userAnswerOptions.add(uao);
+//                }
+//
+//                // Optional: NOT needed if cascade = ALL (which you already have)
+//                // userAnswerOptionRepository.saveAll(userAnswerOptions);
+//            }
+//
+//        }
+//
+//        // 3️⃣ Calculate score in a separate method
+//        int totalScore = calculateScore(submission.getExamSubmissionId());
+//
+//        // 4️⃣ Update exam submission
+//        submission.setScore(totalScore);
+//        submission.setStatus(true);
+//        examSubmissionRepository.save(submission);
+//    }
+
     public void submitAnswer(UserAnswerSubmitRequest request) {
 
-        // 1️⃣ Fetch the exam submission
-        ExamSubmissionEntity submission = examSubmissionRepository.findById(encryptionUtil.decryptId(request.getExamSubmissionId()))
-                .orElseThrow(() -> new ResourceNotFoundException("Exam submission not found"));
+        ExamSubmissionEntity submission =
+                examSubmissionRepository
+                        .findById(encryptionUtil.decryptId(request.getExamSubmissionId()))
+                        .orElseThrow(() -> new ResourceNotFoundException("Exam submission not found"));
 
-        // 2️⃣ Loop through all question answers and save
         for (UserAnswerSubmitRequest.QuestionAnswer qa : request.getAnswers()) {
 
             QuestionEntity question = questionRepository.findById(qa.getQuestionId())
@@ -50,19 +111,17 @@ public class UserAnswerService implements IUserAnswerService {
             answer.setQuestion(question);
             answer.setWrittenAnswer(qa.getWrittenAnswer());
             answer.setCreatedDate(LocalDateTime.now());
+
             userAnswerRepository.save(answer);
 
-            // Save selected MCQ options USING INDEXES
             List<Integer> selectedIndexes = qa.getSelectedOptionIndexes();
 
             if (selectedIndexes != null && !selectedIndexes.isEmpty()) {
 
                 List<QuestionOptionEntity> questionOptions = question.getOptions();
-                List<UserAnswerOptionEntity> userAnswerOptions = new ArrayList<>();
 
                 for (Integer index : selectedIndexes) {
 
-                    // 🛡 Safety check
                     if (index < 0 || index >= questionOptions.size()) {
                         throw new ResourceNotFoundException("Invalid option index: " + index);
                     }
@@ -73,26 +132,18 @@ public class UserAnswerService implements IUserAnswerService {
                     uao.setUserAnswer(answer);
                     uao.setOption(option);
 
-                    // ✅ IMPORTANT: keep relationship in memory (fixes score issue)
                     answer.getSelectedOptions().add(uao);
-
-                    userAnswerOptions.add(uao);
                 }
-
-                // Optional: NOT needed if cascade = ALL (which you already have)
-                // userAnswerOptionRepository.saveAll(userAnswerOptions);
             }
-
         }
 
-        // 3️⃣ Calculate score in a separate method
         int totalScore = calculateScore(submission.getExamSubmissionId());
 
-        // 4️⃣ Update exam submission
         submission.setScore(totalScore);
         submission.setStatus(true);
         examSubmissionRepository.save(submission);
     }
+
 
     @Override
     @Transactional(readOnly = true)

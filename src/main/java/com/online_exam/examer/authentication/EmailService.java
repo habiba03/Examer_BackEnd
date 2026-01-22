@@ -210,6 +210,7 @@ public class EmailService {
             // You may want to log this exception or handle it further
         }
     }
+
     public void sendExamLinkToUser(String to, String examLink,String examTitle, int examDuration) {
 
         if(!userRepository.existsByEmail(to))

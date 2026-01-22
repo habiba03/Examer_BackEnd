@@ -14,7 +14,7 @@ public interface IQuestionService {
     PageDto<QuestionDto> addQuestion(AddQuestionRequest question, String difficulty , Pageable pageable);
     void uploadQuestionsFromExcel(MultipartFile file, String difficulty, Pageable pageable);
     PageDto<QuestionDto>deleteQuestionById(Long QuestionId,  String difficulty  ,Pageable pageable);
-    PageDto<QuestionDto> updateQuestionBYId(Long questionId, UpdateQuestionRequest updateQuestionRequest, String difficulty , Pageable pageable);
+    PageDto<QuestionDto> updateQuestionById(Long questionId, UpdateQuestionRequest updateQuestionRequest, String difficulty , Pageable pageable);
     QuestionDto getQuestionById(Long QuestionId);
     void addAllQuestions(List<AddQuestionRequest> questions);
     PageDto<CategoryDto>getAvailableCategories(Pageable pageable);

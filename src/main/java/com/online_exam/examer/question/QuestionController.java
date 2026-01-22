@@ -56,7 +56,7 @@ public class QuestionController {
         }
 
         return ResponseEntity.status(HttpStatus.OK).
-                body(new ApiResponse("question Updated Successfully", questionService.updateQuestionBYId(questionId, updateQuestionRequest,difficulty,pageable)));
+                body(new ApiResponse("question Updated Successfully", questionService.updateQuestionById(questionId, updateQuestionRequest,difficulty,pageable)));
 
     }
 

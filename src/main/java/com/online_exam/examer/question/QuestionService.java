@@ -269,83 +269,77 @@ public class QuestionService implements IQuestionService {
 //    }
 
 
-    public PageDto<QuestionDto> updateQuestionBYId(Long questionId, UpdateQuestionRequest updateQuestionRequest, String difficulty, Pageable pageable) {
 
 
-        QuestionEntity savedQuestion = questionRepositary.findByQuestionIdAndIsDeletedFalse(questionId)
+    @Transactional
+    @Override
+    public PageDto<QuestionDto> updateQuestionById(Long questionId, UpdateQuestionRequest request, String difficulty, Pageable pageable) {
+
+        QuestionEntity existingQuestion = questionRepositary
+                .findByQuestionIdAndIsDeletedFalse(questionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Question not found"));
 
+        if(questionRepositary.existsByIdAndAssignedToAnyExam(questionId)){
+            throw new AlreadyExsistsException("This question cannot be edited as it is already assigned to an exam.");
+        }
 
-        if (!areOptionsUnique(updateQuestionRequest.getOptions(), updateQuestionRequest.getQuestionType())) {
+        // 1️⃣ Validate options uniqueness
+        if (!areOptionsUnique(request.getOptions(), request.getQuestionType())) {
             throw new IllegalArgumentException("Options must be unique");
         }
 
-
-        if (!isCorrectAnswerValid(updateQuestionRequest.getCorrectOptionIndexes(),
-                updateQuestionRequest.getOptions(),
-                updateQuestionRequest.getQuestionType())) {
-            throw new IllegalArgumentException("The correct answer must be one of the provided options");
+        // 2️⃣ Validate correct answers
+        if (!isCorrectAnswerValid(
+                request.getCorrectOptionIndexes(),
+                request.getOptions(),
+                request.getQuestionType())) {
+            throw new IllegalArgumentException("Invalid correct answer");
         }
 
+        // 3️⃣ Update question directly
+        existingQuestion.setQuestionContent(request.getQuestionContent());
+        existingQuestion.setCategory(request.getCategory());
+        existingQuestion.setDifficulty(request.getDifficulty());
+        existingQuestion.setQuestionType(request.getQuestionType());
 
-        savedQuestion.setQuestionContent(updateQuestionRequest.getQuestionContent());
-        savedQuestion.setCategory(updateQuestionRequest.getCategory());
-        savedQuestion.setDifficulty(updateQuestionRequest.getDifficulty());
-        savedQuestion.setQuestionType(updateQuestionRequest.getQuestionType());
+        // 4️⃣ Clear old options
+        existingQuestion.getOptions().clear();
 
-
-        if (updateQuestionRequest.getQuestionType() == QuestionType.WRITTEN) {
-            savedQuestion.setOptions(null); // no options for written
-        } else {
-            List<QuestionOptionEntity> updatedOptions = new ArrayList<>();
-            List<String> optionTexts = updateQuestionRequest.getOptions();
-            List<Integer> correctIndexes = updateQuestionRequest.getCorrectOptionIndexes();
-
-            for (int i = 0; i < optionTexts.size(); i++) {
+        // 5️⃣ Re-create options if not WRITTEN
+        if (request.getQuestionType() != QuestionType.WRITTEN) {
+            for (int i = 0; i < request.getOptions().size(); i++) {
                 QuestionOptionEntity option = new QuestionOptionEntity();
-                option.setOptionText(optionTexts.get(i));
-                option.setIsCorrect(correctIndexes.contains(i));
-                option.setQuestion(savedQuestion); // link to question
-                updatedOptions.add(option);
+                option.setOptionText(request.getOptions().get(i));
+                option.setIsCorrect(request.getCorrectOptionIndexes().contains(i));
+                option.setQuestion(existingQuestion);
+                existingQuestion.getOptions().add(option);
             }
-
-            // Remove old options and set new ones
-            savedQuestion.getOptions().clear();
-            savedQuestion.getOptions().addAll(updatedOptions);
         }
 
+        // 6️⃣ Save updated question
+        questionRepositary.save(existingQuestion);
 
-        questionRepositary.save(savedQuestion);
+        // 7️⃣ Fetch updated question list
+        Page<QuestionEntity> questions;
 
-
-                // If difficulty is null, it means we need to return all questions
-        if (difficulty == null) {
-// Fetch all questions with pagination
-            Page<QuestionEntity> questions = questionRepositary.findByCategoryAndIsDeletedFalse(
-                    updateQuestionRequest.getCategory(),
+        if (difficulty == null || "all".equalsIgnoreCase(difficulty)) {
+            questions = questionRepositary.findByCategoryAndIsDeletedFalse(
+                    request.getCategory(),
                     pageable
             );
-
-// Convert the Page<QuestionEntity> to Page<QuestionDto>
-            Page<QuestionDto> questionsPageDto = entityToDtoMapper.questionsPageToDtoPage(questions);
-
-// Wrap the Page<QuestionDto> into PageDto<QuestionDto> to return only necessary data
-            return new PageDto<>(questionsPageDto);
+        } else {
+            questions = questionRepositary.findByCategoryAndDifficultyAndDeleted(
+                    request.getCategory(),
+                    difficulty,
+                    false,
+                    pageable
+            );
         }
 
-        // Otherwise, fetch questions with specific difficulty
-        Page<QuestionEntity> questions = questionRepositary.findByCategoryAndDifficultyAndDeleted(
-                updateQuestionRequest.getCategory(),
-                difficulty, false,
-                pageable
-        );
+        Page<QuestionDto> dtoPage =
+                entityToDtoMapper.questionsPageToDtoPage(questions);
 
-        // Convert the Page<QuestionEntity> to Page<QuestionDto>
-        Page<QuestionDto> questionsPageDto = entityToDtoMapper.questionsPageToDtoPage(questions);
-
-        // Wrap the Page<QuestionDto> into PageDto<QuestionDto> to return only necessary data
-        return new PageDto<>(questionsPageDto);
-
+        return new PageDto<>(dtoPage);
     }
 
 
