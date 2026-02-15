@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,7 +38,8 @@ public class AdminEntity {
     //indexing
     @Column(nullable = false, unique = true)
     @NotBlank(message = "Admin username is required.")
-    @Pattern(regexp = "^[a-zA-Z0-9_]{1,20}$", message = "Username must be 1-20 alphanumeric characters or underscores only.")
+    @Size(min = 2, max = 50)
+    @Pattern(regexp = "^(?=.*[a-zA-Z0-9])[a-zA-Z0-9_]+$", message = "Username must contain at least one letter or number and may include underscores (_)")
     private String adminUserName;
     @NotEmpty(message = "Phone number cannot be empty")
     @Pattern(regexp = "^(012|011|015|010)\\d{8}$", message = "Phone number must start with 010, 011, 012, or 015 and be followed by 8 digits")

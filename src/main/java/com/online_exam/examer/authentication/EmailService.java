@@ -225,6 +225,7 @@ public class EmailService {
 
             helper.setFrom(Objects.requireNonNull(environment.getProperty("spring.mail.username")));
             helper.setTo(to);
+            helper.setCc("onlineexam@ntgclarity.com");
             helper.setSubject(examTitle+" Exam Link");
 
             String htmlContent = "<html>" +

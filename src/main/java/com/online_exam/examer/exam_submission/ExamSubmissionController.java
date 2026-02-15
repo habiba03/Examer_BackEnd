@@ -39,6 +39,7 @@ public class ExamSubmissionController {
 
 
     }
+
     @GetMapping(path = "examQuestions")
     public ResponseEntity<ApiResponse> getExamQuestions(@RequestParam String id) {
 
@@ -48,6 +49,7 @@ public class ExamSubmissionController {
 
 
     }
+
     @GetMapping("/getUsersForExamAndAdmin/{examId}/{adminId}")
     public ResponseEntity<ApiResponse> getUsersForExamAndAdmin(
             @PathVariable Long examId,

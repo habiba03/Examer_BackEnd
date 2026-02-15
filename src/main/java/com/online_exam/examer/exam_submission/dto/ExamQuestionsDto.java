@@ -21,5 +21,5 @@ public class ExamQuestionsDto implements Serializable {
 //    private List<OptionDto> options;
     private List<String> options;
 
-    private List<Long> correctOptionIndexes;
+    //private List<Long> correctOptionIndexes;
 }
