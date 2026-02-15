@@ -100,9 +100,12 @@ public class ExamSubmissionService implements IExamSubmissionService {
             String encryptedId = encryptionUtil.encryptId(savedExamSubmission.getExamSubmissionId());
             encryptionUtil.decryptId(encryptedId);
 
+            String encryptedUserId = encryptionUtil.encryptId(user.getUserId());
+
 
         //final String examLink = environment.getProperty("public.url")+"exam/takeExam?id="+encryptedId;
-        final String examLink = environment.getProperty("public.url")+"exam/takeExam?id="+encryptedId+"&userId="+user.getUserId();
+        //final String examLink = environment.getProperty("public.url")+"exam/takeExam?id="+encryptedId+"&userId="+user.getUserId();
+        final String examLink = environment.getProperty("public.url")+"exam/takeExam?id="+encryptedId+"&userId="+encryptedUserId;
 
         emailService.sendExamLinkToUser(user.getEmail(),examLink,exam.getExamTitle(),exam.getExamDuration());
         System.out.println("Exam Link (Local Testing): " + examLink);
@@ -155,6 +158,7 @@ public class ExamSubmissionService implements IExamSubmissionService {
         }
 
         ExamSubmissionEntity examSubmission = examSubmissionRepository.findByUser_UserIdAndExam_ExamId(resetExamToUserRequest.getUserId(), resetExamToUserRequest.getExamId());
+        examSubmission.getUserAnswers().clear();
         examSubmission.setScore(0);
         examSubmission.setStatus(false);
         examSubmissionRepository.save(examSubmission);

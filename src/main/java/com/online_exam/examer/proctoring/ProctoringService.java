@@ -30,8 +30,9 @@ private final ProctoringRepository proctoringRepository;
     private final ExamRepository examRepository;
     private final ExamSubmissionRepository examSubmissionRepository;
 
-    public void saveScreenshot(Long studentId, String examEncryptedId, String image) throws IOException {
+    public void saveScreenshot(String studentEncryptedId, String examEncryptedId, String image) throws IOException {
         Long examSubmissionId = encryptionUtil.decryptId(examEncryptedId);
+        Long studentId = encryptionUtil.decryptId(studentEncryptedId);
         ExamSubmissionEntity examSubmission = examSubmissionRepository.findById(examSubmissionId).orElseThrow();
 
         ExamEntity exam = examRepository.findById(examSubmission.getExam().getExamId())

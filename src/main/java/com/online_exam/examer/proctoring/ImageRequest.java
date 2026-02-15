@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class ImageRequest {
-    private Long studentId;
+    private String studentId;
     private String examId;
     private String image;
 }
