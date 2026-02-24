@@ -31,7 +31,7 @@ public class UserEntity {
     private Long userId;
     @Column(nullable = false)
     @NotBlank(message = "Username is required.")
-    @Pattern(regexp = "^[a-zA-Z_]{1,20}$", message = "Username must be 1-20 alphanumeric characters or underscores only.")
+    @Pattern(regexp = "^[a-zA-Z_]{1,60}$", message = "Username must be 1-60 alphanumeric characters or underscores only.")
     private String userName;
     @NotEmpty(message = "Phone number cannot be empty")
     @Pattern(regexp = "^(012|011|015|010)\\d{8}$", message = "Phone number must start with 010, 011, 012, or 015 and be followed by 8 digits")

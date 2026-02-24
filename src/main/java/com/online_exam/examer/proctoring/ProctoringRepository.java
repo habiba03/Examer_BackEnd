@@ -8,4 +8,6 @@ import java.util.List;
 @Repository
 public interface ProctoringRepository extends JpaRepository<ProctoringEntity, Long> {
     List<ProctoringEntity> findByExam_ExamIdAndUser_UserId(Long examId, Long userId);
+    void deleteByExam_ExamIdAndUser_UserId(Long examId, Long userId);
+
 }

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.online_exam.examer.util.EncryptionUtil;
 
 import java.util.Map;
 
@@ -20,6 +21,7 @@ public class ProctoringController {
     @PostMapping("/upload")
     public ResponseEntity<?> upload(@RequestBody ImageRequest request) {
         try {
+
             proctoringService.saveScreenshot(request.getStudentId(), request.getExamId(), request.getImage());
 
             return ResponseEntity.ok().body(Map.of("message", "تم حفظ لقطة الشاشة بنجاح"));

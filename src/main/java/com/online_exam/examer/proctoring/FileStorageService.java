@@ -65,4 +65,9 @@ public class FileStorageService {
             throw new RuntimeException("خطأ في الوصول للمسار", ex);
         }
     }
+
+    public void deleteFile(String filePath) throws IOException {
+        Path path = Paths.get(filePath);
+        Files.deleteIfExists(path);
+    }
 }

@@ -7,11 +7,15 @@ import com.online_exam.examer.exam_submission.ExamSubmissionRepository;
 import com.online_exam.examer.user.UserEntity;
 import com.online_exam.examer.user.UserRepository;
 import com.online_exam.examer.util.EncryptionUtil;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -84,6 +88,29 @@ private final ProctoringRepository proctoringRepository;
 
         return imageResponses;
     }
+
+
+    @Transactional
+    public void deleteStudentExamProctoring(Long examId, Long studentId) {
+
+        List<ProctoringEntity> logs =
+                proctoringRepository.findByExam_ExamIdAndUser_UserId(examId, studentId);
+
+        for (ProctoringEntity log : logs) {
+            try {
+                fileStorageService.deleteFile(log.getImageUrl());
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to delete file: " + log.getImageUrl(), e);
+            }
+        }
+
+        proctoringRepository.deleteByExam_ExamIdAndUser_UserId(examId, studentId);
+    }
+
+
+
+
+
 
 
 //public List<ImageResponse> getStudentImagesInExam(Long examId, Long studentId) {

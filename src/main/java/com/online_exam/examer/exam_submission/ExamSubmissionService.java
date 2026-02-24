@@ -15,6 +15,7 @@ import com.online_exam.examer.exception.ExamExpiredException;
 import com.online_exam.examer.exception.ResourceNotFoundException;
 import com.online_exam.examer.mapper.EntityToDtoMapper;
 import com.online_exam.examer.mapper.PageDto;
+import com.online_exam.examer.proctoring.ProctoringService;
 import com.online_exam.examer.question.QuestionEntity;
 import com.online_exam.examer.question.QuestionRepository;
 import com.online_exam.examer.question.enums.QuestionType;
@@ -55,6 +56,7 @@ public class ExamSubmissionService implements IExamSubmissionService {
     private final Environment environment;
     private final UserAnswerRepository userAnswerRepository;
     private final ExamService examService;
+    private final ProctoringService proctoringService;
 
 
     @Transactional
@@ -158,6 +160,10 @@ public class ExamSubmissionService implements IExamSubmissionService {
         }
 
         ExamSubmissionEntity examSubmission = examSubmissionRepository.findByUser_UserIdAndExam_ExamId(resetExamToUserRequest.getUserId(), resetExamToUserRequest.getExamId());
+        proctoringService.deleteStudentExamProctoring(
+                resetExamToUserRequest.getExamId(),
+                resetExamToUserRequest.getUserId()
+        );
         examSubmission.getUserAnswers().clear();
         examSubmission.setScore(0);
         examSubmission.setStatus(false);
@@ -273,14 +279,15 @@ public class ExamSubmissionService implements IExamSubmissionService {
                 .sum();
 
         // Reset the old written scores
+        int whatset = submission.getScore() - oldWrittenTotal;
         submission.setScore(submission.getScore() - oldWrittenTotal);
 
         int newWrittenTotal = 0;
 
         for (WrittenAnswerRateRequest r : request.getRates()) {
 
-            if (r.getRate() < 1 || r.getRate() > 5) {
-                throw new IllegalArgumentException("Rate must be between 1 and 5");
+            if (r.getRate() < 0 || r.getRate() > 5) {
+                throw new IllegalArgumentException("Rate must be between 0 and 5");
             }
 
             UserAnswerEntity answer = userAnswerRepository

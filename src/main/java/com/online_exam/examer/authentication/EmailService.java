@@ -131,6 +131,10 @@ public class EmailService {
 
             helper.setFrom(Objects.requireNonNull(environment.getProperty("spring.mail.username")));
             helper.setTo(to);
+            helper.setCc(new String[]{
+                    "onlineexam@ntgclarity.com",
+                    "mohamedibrahim@ntgclarity.com"
+            });
             helper.setSubject("Your Password");
 
             String htmlContent = "<html>" +
@@ -225,7 +229,10 @@ public class EmailService {
 
             helper.setFrom(Objects.requireNonNull(environment.getProperty("spring.mail.username")));
             helper.setTo(to);
-            helper.setCc("onlineexam@ntgclarity.com");
+            helper.setCc(new String[]{
+                    "onlineexam@ntgclarity.com",
+                    "mohamedibrahim@ntgclarity.com"
+            });
             helper.setSubject(examTitle+" Exam Link");
 
             String htmlContent = "<html>" +
