@@ -28,6 +28,13 @@ public class GlobalException {
         return new ResponseEntity<>(new GeneralResponse(e.getMessage()), HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(ExamExpiredException.class)
+    @ResponseStatus(HttpStatus.GONE)
+    public ResponseEntity<GeneralResponse> handleExamExpired(ExamExpiredException e) {
+        return new ResponseEntity<>(new GeneralResponse(e.getMessage()),HttpStatus.GONE);
+    }
+
+
     @ExceptionHandler(PasswordNotMatchedException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ResponseEntity<GeneralResponse> passwordNotMatchedException(PasswordNotMatchedException e) {

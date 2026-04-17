@@ -1,4 +1,5 @@
 package com.online_exam.examer.user_answers;
+import com.online_exam.examer.exam_submission.dto.UserExamDetailsDto;
 import com.online_exam.examer.response.ApiResponse;
 import com.online_exam.examer.response.GeneralResponse;
 import com.online_exam.examer.user_answers.IUserAnswerService;
@@ -21,11 +22,13 @@ public class UserAnswerController {
     private final IUserAnswerService userAnswerService;
 
     @PostMapping
-    public ResponseEntity<GeneralResponse> submitAnswer(
+    public ResponseEntity<ApiResponse> submitAnswer(
             @RequestBody @Validated UserAnswerSubmitRequest request) {
-        userAnswerService.submitAnswer(request);
+
+        UserExamDetailsDto result = userAnswerService.submitAnswer(request);
+
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new GeneralResponse("Answer submitted successfully"));
+                .body(new ApiResponse("Exam submitted successfully", result));
     }
 
     @GetMapping("/submission/{submissionId}")

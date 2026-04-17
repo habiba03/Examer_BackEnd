@@ -2,6 +2,7 @@ package com.online_exam.examer.user_answers;
 
 import com.online_exam.examer.exam_submission.ExamSubmissionEntity;
 import com.online_exam.examer.exam_submission.ExamSubmissionRepository;
+import com.online_exam.examer.exam_submission.dto.UserExamDetailsDto;
 import com.online_exam.examer.exception.ResourceNotFoundException;
 import com.online_exam.examer.mapper.EntityToDtoMapper;
 import com.online_exam.examer.question.QuestionEntity;
@@ -16,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.online_exam.examer.util.EncryptionUtil;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -94,7 +94,9 @@ public class UserAnswerService implements IUserAnswerService {
 //        examSubmissionRepository.save(submission);
 //    }
 
-    public void submitAnswer(UserAnswerSubmitRequest request) {
+
+
+    public UserExamDetailsDto submitAnswer(UserAnswerSubmitRequest request) {
 
         ExamSubmissionEntity submission =
                 examSubmissionRepository
@@ -132,17 +134,29 @@ public class UserAnswerService implements IUserAnswerService {
                     uao.setUserAnswer(answer);
                     uao.setOption(option);
 
+                    // 🔴 THIS LINE IS CRITICAL
                     answer.getSelectedOptions().add(uao);
                 }
             }
         }
 
+        // ✅ calculate correct questions count
         int totalScore = calculateScore(submission.getExamSubmissionId());
 
         submission.setScore(totalScore);
         submission.setStatus(true);
         examSubmissionRepository.save(submission);
+
+        // ✅ RETURN RESULT
+        return new UserExamDetailsDto(
+                submission.getUser().getUserName(),
+                submission.getExam().getExamTitle(),
+                totalScore
+        );
     }
+
+
+
 
 
     @Override
@@ -194,3 +208,4 @@ public class UserAnswerService implements IUserAnswerService {
     // Optional: implement your scoring logic here if needed
     // private int calculateScore(ExamSubmissionEntity submission) { ... }
 }
+

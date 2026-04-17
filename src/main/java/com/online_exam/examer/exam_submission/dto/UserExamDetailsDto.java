@@ -10,6 +10,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserExamDetailsDto implements Serializable {
+
     private Long examSubmissionId;
     private Long userId;
     private String userName;
@@ -17,7 +18,7 @@ public class UserExamDetailsDto implements Serializable {
     private int totalMark;
     private int score;
 
-    // ✅ constructor used by JPQL
+    // ✅ JPQL constructor
     public UserExamDetailsDto(
             Long examSubmissionId,
             Long userId,
@@ -31,5 +32,13 @@ public class UserExamDetailsDto implements Serializable {
         this.examName = examName;
         this.score = score;
     }
+
+    // ✅ ADD THIS (for submit exam response)
+    public UserExamDetailsDto(String userName,String examName, int score) {
+        this.userName = userName;
+        this.examName = examName;
+        this.score = score;
+    }
+
 
 }

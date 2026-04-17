@@ -11,9 +11,11 @@ import com.online_exam.examer.exam_submission.request.AssignExamToUserAddRequest
 import com.online_exam.examer.exam_submission.request.AssignExamToUserUpdateRequest;
 import com.online_exam.examer.exam_submission.request.ResetExamToUserRequest;
 import com.online_exam.examer.exception.AlreadyExsistsException;
+import com.online_exam.examer.exception.ExamExpiredException;
 import com.online_exam.examer.exception.ResourceNotFoundException;
 import com.online_exam.examer.mapper.EntityToDtoMapper;
 import com.online_exam.examer.mapper.PageDto;
+import com.online_exam.examer.proctoring.ProctoringService;
 import com.online_exam.examer.question.QuestionEntity;
 import com.online_exam.examer.question.QuestionRepository;
 import com.online_exam.examer.question.enums.QuestionType;
@@ -36,6 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -53,6 +56,7 @@ public class ExamSubmissionService implements IExamSubmissionService {
     private final Environment environment;
     private final UserAnswerRepository userAnswerRepository;
     private final ExamService examService;
+    private final ProctoringService proctoringService;
 
 
     @Transactional
@@ -89,14 +93,23 @@ public class ExamSubmissionService implements IExamSubmissionService {
             examSubmission.setScore(0);  // Default score, if applicable
             examSubmission.setStatus(false);  // Default status, e.g., not started or incomplete
             examSubmission.setCreatedDate(new Timestamp(System.currentTimeMillis()));
+            //LocalDateTime expiryDate = LocalDateTime.now().plusMinutes(3);
+            LocalDateTime expiryDate = LocalDateTime.now().plusWeeks(1);
+            examSubmission.setExpiresAt(Timestamp.valueOf(expiryDate));
+
             ExamSubmissionEntity savedExamSubmission = examSubmissionRepository.save(examSubmission);
 
             String encryptedId = encryptionUtil.encryptId(savedExamSubmission.getExamSubmissionId());
             encryptionUtil.decryptId(encryptedId);
 
+            String encryptedUserId = encryptionUtil.encryptId(user.getUserId());
 
-        final String examLink = environment.getProperty("public.url")+"exam/takeExam?id="+encryptedId;
-        //emailService.sendExamLinkToUser(user.getEmail(),examLink,exam.getExamTitle(),exam.getExamDuration());
+
+        //final String examLink = environment.getProperty("public.url")+"exam/takeExam?id="+encryptedId;
+        //final String examLink = environment.getProperty("public.url")+"exam/takeExam?id="+encryptedId+"&userId="+user.getUserId();
+        final String examLink = environment.getProperty("public.url")+"exam/takeExam?id="+encryptedId+"&userId="+encryptedUserId;
+
+        emailService.sendExamLinkToUser(user.getEmail(),examLink,exam.getExamTitle(),exam.getExamDuration());
         System.out.println("Exam Link (Local Testing): " + examLink);
 
 
@@ -147,6 +160,11 @@ public class ExamSubmissionService implements IExamSubmissionService {
         }
 
         ExamSubmissionEntity examSubmission = examSubmissionRepository.findByUser_UserIdAndExam_ExamId(resetExamToUserRequest.getUserId(), resetExamToUserRequest.getExamId());
+        proctoringService.deleteStudentExamProctoring(
+                resetExamToUserRequest.getExamId(),
+                resetExamToUserRequest.getUserId()
+        );
+        examSubmission.getUserAnswers().clear();
         examSubmission.setScore(0);
         examSubmission.setStatus(false);
         examSubmissionRepository.save(examSubmission);
@@ -167,8 +185,7 @@ public class ExamSubmissionService implements IExamSubmissionService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageDto<UserExamDetailsDto> getUsersForExamAndAdmin(
-            Long examId, Long adminId, Pageable pageable) {
+    public PageDto<UserExamDetailsDto> getUsersForExamAndAdmin(Long examId, Long adminId, Pageable pageable) {
 
         Page<UserExamDetailsDto> submissions =
                 examSubmissionRepository.findUserExamDetailsByExamAndAdmin(
@@ -221,6 +238,10 @@ public class ExamSubmissionService implements IExamSubmissionService {
             throw new AlreadyExsistsException("You already took this exam before");
         }
 
+        if (examSubmission.getExpiresAt().before(new Timestamp(System.currentTimeMillis()))) {
+            throw new ExamExpiredException("Sorry, this exam link has expired.");
+        }
+
 
         Long examId = examSubmission.getExam().getExamId();
 
@@ -240,43 +261,6 @@ public class ExamSubmissionService implements IExamSubmissionService {
     }
 
 
-//    @Override
-//    public void rateWrittenExam(Long submissionId, RateWrittenExamRequest request) {
-//
-//        // Fetch the submission directly by numeric ID
-//        ExamSubmissionEntity submission = examSubmissionRepository
-//                .findById(submissionId)
-//                .orElseThrow(() -> new ResourceNotFoundException("Submission not found"));
-//
-//        int writtenTotal = 0;
-//
-//        for (WrittenAnswerRateRequest r : request.getRates()) {
-//
-//            // Validate the rating
-//            if (r.getRate() < 1 || r.getRate() > 5) {
-//                throw new IllegalArgumentException("Rate must be between 1 and 5");
-//            }
-//
-//            // Fetch the user answer
-//            UserAnswerEntity answer = userAnswerRepository
-//                    .findById(r.getUserAnswerId())
-//                    .orElseThrow(() -> new ResourceNotFoundException("Answer not found"));
-//
-//            // Update the written score
-//            answer.setWrittenScore(r.getRate());
-//            writtenTotal += r.getRate();
-//
-//            // Save the updated answer
-//            userAnswerRepository.save(answer);
-//        }
-//
-//        // Update the total score and mark submission as finalized
-//        submission.setScore(submission.getScore() + writtenTotal);
-//        submission.setStatus(true);
-//
-//        examSubmissionRepository.save(submission);
-//    }
-
 
     public void rateWrittenExam(Long submissionId, RateWrittenExamRequest request) {
 
@@ -295,14 +279,15 @@ public class ExamSubmissionService implements IExamSubmissionService {
                 .sum();
 
         // Reset the old written scores
+        int whatset = submission.getScore() - oldWrittenTotal;
         submission.setScore(submission.getScore() - oldWrittenTotal);
 
         int newWrittenTotal = 0;
 
         for (WrittenAnswerRateRequest r : request.getRates()) {
 
-            if (r.getRate() < 1 || r.getRate() > 5) {
-                throw new IllegalArgumentException("Rate must be between 1 and 5");
+            if (r.getRate() < 0 || r.getRate() > 5) {
+                throw new IllegalArgumentException("Rate must be between 0 and 5");
             }
 
             UserAnswerEntity answer = userAnswerRepository

@@ -54,6 +54,10 @@ public class ExamSubmissionEntity {
    // @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted=false ;
 
+    @Column(name = "expires_at")
+    private Timestamp expiresAt;
+
+
     @OneToMany(mappedBy = "examSubmission", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserAnswerEntity> userAnswers = new ArrayList<>();
 

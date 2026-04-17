@@ -84,11 +84,11 @@ public class EntityToDtoMapper {
         dto.setQuestionType(questionEntity.getQuestionType());
 
         // WRITTEN question → options = null
-        if (questionEntity.getQuestionType() == QuestionType.WRITTEN) {
-            dto.setOptions(null);
-            dto.setCorrectOptionIndexes(List.of());
-            return dto;
-        }
+//        if (questionEntity.getQuestionType() == QuestionType.WRITTEN) {
+//            dto.setOptions(null);
+//            dto.setCorrectOptionIndexes(List.of());
+//            return dto;
+//        }
 
         List<String> optionTexts = new ArrayList<>();
         List<Long> correctIndexes = new ArrayList<>();
@@ -104,7 +104,7 @@ public class EntityToDtoMapper {
         }
 
         dto.setOptions(optionTexts);
-        dto.setCorrectOptionIndexes(correctIndexes);
+        //dto.setCorrectOptionIndexes(correctIndexes);
 
         return dto;
     }
